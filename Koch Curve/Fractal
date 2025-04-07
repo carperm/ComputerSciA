@@ -1,0 +1,81 @@
+// Mr. Wise package fractal;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import javax.imageio.*;
+
+public class Fractal {
+    private BufferedImage image;
+    private Graphics2D gi;
+    private boolean rendering;
+    private int imageNumber;
+    private Color color;
+
+    public Fractal(int centerX, int centerY, int size, Color c) {
+        System.out.println("Rendering");
+        rendering = true;
+        color = c;
+
+        image = new BufferedImage(GUIFramework.SCREEN_WIDTH, GUIFramework.SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        gi = image.createGraphics();
+        gi.setColor(color);
+        gi.setStroke(new BasicStroke(3));
+
+        int height = (int)(.866*size);
+
+        drawKochLine(centerX-size/2,centerY+height/2,centerX,centerY-height/2);
+        drawKochLine(centerX,centerY-height/2,centerX+size/2,centerY+height/2);
+        drawKochLine(centerX+size/2,centerY+height/2,centerX-size/2,centerY+height/2);
+
+        gi.dispose();
+        rendering = false;        
+    }
+
+    public void drawKochLine(int startX, int startY, int endX, int endY){
+        int changeX = (endX-startX)/3;
+        int changeY = (endY-startY)/3;
+        double length = Point.distance(startX,startY,endX,endY);
+       
+        if(length < 5) {
+            gi.drawLine(startX, startY, endX, endY);
+          
+        } else {
+        
+        //need to draw two koch lines from 1/3 into the line to a peak same third
+        int x2 = startX+changeX;
+        int y2 = startY + changeY;
+        drawKochLine(startX, startY, x2, y2);
+        
+        
+        double rot = Math.toRadians(-60);
+        int x3 = (int)(changeX*Math.cos(rot) - changeY*Math.sin(rot)) + x2;
+        int y3 = (int)(changeX*Math.sin(rot) + changeY*Math.cos(rot)) + y2;
+        drawKochLine(x2, y2, x3, y3);
+        
+        int x4 = x2 + changeX;
+        int y4 = y2 + changeY;
+        drawKochLine(x3,y3,x4,y4);
+        
+        drawKochLine(x4,y4,endX,endY);
+
+        }
+    }
+    
+    
+
+    public void draw(Graphics2D g2) {
+        if (!rendering) {
+            g2.drawImage(image, 0, 0, null);
+        }
+    }
+
+    public void save() {
+        ++imageNumber;
+        System.out.println("Saving image"+imageNumber+".png");
+        try {
+            File outputfile = new File("image"+imageNumber+".png");
+            ImageIO.write(image, "png", outputfile);
+        } catch (IOException e) {}
+    }
+}
